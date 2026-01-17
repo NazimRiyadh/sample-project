@@ -17,42 +17,37 @@ type Product struct {
 }
 
 func Handle_cors(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Allow-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Allow-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE, PATCH")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func TypeCheck(w http.ResponseWriter, r *http.Request, method string) bool {
-	if r.Method != method {
-		http.Error(w, "Make a "+r.Method+" request", 400)
-		return false
-	}
-	return true
-}
+// func TypeCheck(w http.ResponseWriter, r *http.Request, method string) bool {
+// 	if r.Method != method {
+// 		http.Error(w, "Make a "+r.Method+" request", 400)
+// 		return false
+// 	}
+// 	return true
+// }
 
 func PreflightRequest(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-	}
+
 }
 
 func getProducts(w http.ResponseWriter, r *http.Request) {
 	Handle_cors(w, r)
-	PreflightRequest(w, r)
-	if TypeCheck(w, r, "GET") == false {
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(200)
 		return
 	}
+
 	json.NewEncoder(w).Encode(products)
 }
 
 func addProducts(w http.ResponseWriter, r *http.Request) {
 	Handle_cors(w, r)
 	PreflightRequest(w, r)
-
-	if TypeCheck(w, r, "GET") == false {
-		return
-	}
 
 	var new_product Product
 	json.NewDecoder(r.Body).Decode(&new_product)
@@ -65,8 +60,8 @@ func addProducts(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/products", getProducts)
-	mux.HandleFunc("/addProducts", addProducts)
+	mux.Handle("GET /products", http.HandlerFunc(getProducts))
+	mux.Handle("POST /addProducts", http.HandlerFunc(addProducts))
 	err := http.ListenAndServe(":8080", mux)
 	if err != nil {
 		fmt.Println("Error starting server:", err)
