@@ -10,15 +10,13 @@ import (
 
 func Serve() {
 	mux := http.NewServeMux()
-
 	manager := middlewares.NewManager()
-	m := manager.With(middlewares.Logger, middlewares.Hudai)
-	h := m(http.HandlerFunc(handlers.Test))
+	manager.Use(middlewares.Logger, middlewares.Hudai, middlewares.Arekta)
 
-	mux.Handle("GET /test", h)
-	mux.Handle("GET /products", middlewares.Hudai(middlewares.Logger(http.HandlerFunc(handlers.GetProducts))))
-	mux.Handle("POST /products", middlewares.Hudai(middlewares.Logger(http.HandlerFunc(handlers.AddProducts))))
-	mux.Handle("GET /products/{productId}", middlewares.Hudai(middlewares.Logger(http.HandlerFunc(handlers.GetProductById))))
+	mux.Handle("GET /test", manager.With(http.HandlerFunc(handlers.Test)))
+	mux.Handle("GET /products", manager.With(http.HandlerFunc(handlers.GetProducts)))
+	mux.Handle("POST /products", manager.With(http.HandlerFunc(handlers.AddProducts)))
+	mux.Handle("GET /products/{productId}", manager.With(http.HandlerFunc(handlers.GetProductById)))
 
 	globalRouter := global_router.GlobalRouter(mux)
 	err := http.ListenAndServe(":8080", globalRouter)

@@ -16,14 +16,19 @@ func NewManager() *Manager {
 	return &mngr
 }
 
-func (m *Manager) With(middlewares ...Middleware) Middleware {
-	return func(next http.Handler) http.Handler {
-		handler := next
+//for appending the middleares
+func (m *Manager) Use(middlewares ...Middleware) {
+	m.Middlewares = append(m.Middlewares, middlewares...)
+}
 
-		for i := len(middlewares) - 1; i >= 0; i-- {
-			middleware := middlewares[i]
-			handler = middleware(handler)
-		}
-		return handler
+func (m *Manager) With(handlers http.Handler, middlewares ...Middleware) http.Handler {
+
+	// for _, middlewares := range middlewares {
+	// 	handlers = middlewares(handlers)
+	// }
+
+	for _, middleware := range m.Middlewares {
+		handlers = middleware(handlers)
 	}
+	return handlers
 }
