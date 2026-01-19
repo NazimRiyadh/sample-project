@@ -5,6 +5,6 @@ import (
 	"net/http"
 )
 
-func SendData(w http.ResponseWriter, data interface{}, r *http.Request) {
+func SendData(w http.ResponseWriter, data interface{}, status int) {
 	json.NewEncoder(w).Encode(data)
 }

@@ -23,4 +23,5 @@ func GetProductById(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	util.SendData(w, nil, http.StatusNotFound)
 }
