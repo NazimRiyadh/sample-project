@@ -1,0 +1,51 @@
+package config
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
+)
+
+type Config struct {
+	Version     string
+	ServiceName string
+	HttpPort    int
+}
+
+var configurations Config
+
+func loadConfig() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Eror while loading env variables", err)
+	}
+
+	version := os.Getenv("VERSION")
+	if version == "" {
+		fmt.Println("VERSION is not set")
+	}
+
+	serviceName := os.Getenv("SERVICE_NAME")
+	if serviceName == "" {
+		fmt.Println("SERVICE_NAME is not set")
+	}
+
+	httpPort := os.Getenv("HTTP_PORT")
+	httpPortInt, err := strconv.Atoi(httpPort)
+	if err != nil {
+		fmt.Println("HTTP_PORT is not set")
+	}
+
+	configurations = Config{
+		Version:     version,
+		ServiceName: serviceName,
+		HttpPort:    int(httpPortInt),
+	}
+}
+
+func GetConfig() Config {
+	loadConfig()
+	return configurations
+}
