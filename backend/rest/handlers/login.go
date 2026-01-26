@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"ecommerce/config"
 	"ecommerce/database"
 	"ecommerce/util"
 	"encoding/json"
@@ -23,7 +24,19 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		util.SendData(w, "Invalid username or password", http.StatusUnauthorized)
 	} else {
 		if user.Password == login.Password {
-			util.SendData(w, "Login successful", http.StatusOK)
+			config := config.GetConfig()
+			jwt, err := util.CreateJWT(util.Payload{
+				ID:        user.ID,
+				Firstname: user.Firstname,
+				Lastname:  user.Lastname,
+				Email:     user.Email,
+				IsOwner:   user.IsOwner,
+			}, config.JWT_SECRET)
+			if err != nil {
+				util.SendData(w, "Error creating token", http.StatusInternalServerError)
+				return
+			}
+			util.SendData(w, jwt, http.StatusOK)
 		} else {
 			util.SendData(w, "Invalid username or password", http.StatusUnauthorized)
 		}

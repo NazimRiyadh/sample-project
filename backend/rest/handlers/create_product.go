@@ -8,6 +8,7 @@ import (
 )
 
 func AddProducts(w http.ResponseWriter, r *http.Request) {
+
 	var new_product database.Product
 	err := json.NewDecoder(r.Body).Decode(&new_product)
 	if err != nil {

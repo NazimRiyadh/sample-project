@@ -23,9 +23,10 @@ func (m *Manager) Use(middlewares ...Middleware) {
 
 func (m *Manager) With(handlers http.Handler, middlewares ...Middleware) http.Handler {
 
-	// for _, middlewares := range middlewares {
-	// 	handlers = middlewares(handlers)
-	// }
+	//eidar kisu kahini ase , check kora lagbo mone koira
+	for _, middlewares := range middlewares {
+		handlers = middlewares(handlers)
+	}
 
 	for _, middleware := range m.Middlewares {
 		handlers = middleware(handlers)

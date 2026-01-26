@@ -33,7 +33,7 @@ func CreateJWT(data Payload, secret string) (string, error) {
 	}
 
 	//bytearray to base64
-	base64_header := base64encoding(byte_arr_header)
+	base64_header := Base64encoding(byte_arr_header)
 
 	//payload converted to bytearray
 	byte_arr_payload, err := json.Marshal(data)
@@ -41,7 +41,7 @@ func CreateJWT(data Payload, secret string) (string, error) {
 		return "", err
 	}
 	//bytearray to base64
-	base64_payload := base64encoding(byte_arr_payload)
+	base64_payload := Base64encoding(byte_arr_payload)
 
 	//concat payload and header = message
 	message := base64_header + "." + base64_payload
@@ -57,7 +57,7 @@ func CreateJWT(data Payload, secret string) (string, error) {
 
 	signature := h.Sum(nil)
 
-	base64_signature := base64encoding(signature)
+	base64_signature := Base64encoding(signature)
 
 	jwt := base64_header + "." + base64_payload + "." + base64_signature
 
@@ -65,6 +65,6 @@ func CreateJWT(data Payload, secret string) (string, error) {
 
 }
 
-func base64encoding(bytearray []byte) string {
+func Base64encoding(bytearray []byte) string {
 	return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(bytearray)
 }
