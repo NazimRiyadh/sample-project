@@ -3,14 +3,13 @@ package middlewares
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"ecommerce/config"
 	"ecommerce/util"
 	"fmt"
 	"net/http"
 	"strings"
 )
 
-func Authenticate_jwt(next http.Handler) http.Handler {
+func (MiddlewareConfig *MiddlewareConfig) Authenticate_jwt(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//parse jwt
 		//split the jwt use space
@@ -49,10 +48,10 @@ func Authenticate_jwt(next http.Handler) http.Handler {
 		//message to bytearray
 		byte_arr_message := []byte(message)
 
-		config := config.GetConfig()
+		//config := config.GetConfig()
 
 		//secret to bytesecret
-		byte_arr_secret := []byte(config.JWT_SECRET)
+		byte_arr_secret := []byte(MiddlewareConfig.cnf.JWT_SECRET)
 
 		h := hmac.New(sha256.New, byte_arr_secret)
 		h.Write(byte_arr_message)

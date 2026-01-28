@@ -15,7 +15,7 @@ type Config struct {
 	JWT_SECRET  string
 }
 
-var configurations Config
+var configurations *Config
 
 func loadConfig() {
 	err := godotenv.Load()
@@ -44,7 +44,7 @@ func loadConfig() {
 		fmt.Println("JWT secret not aailable")
 	}
 
-	configurations = Config{
+	configurations = &Config{
 		Version:     version,
 		ServiceName: serviceName,
 		HttpPort:    int(httpPortInt),
@@ -52,7 +52,9 @@ func loadConfig() {
 	}
 }
 
-func GetConfig() Config {
-	loadConfig()
+func GetConfig() *Config {
+	if configurations == nil {
+		loadConfig()
+	}
 	return configurations
 }
