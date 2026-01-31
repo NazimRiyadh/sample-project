@@ -1,12 +1,18 @@
 package repo
 
+import (
+	"database/sql"
+
+	"github.com/jmoiron/sqlx"
+)
+
 type User struct {
-	ID        int    `json:"id"`
-	Firstname string `json:"first_name"`
-	Lastname  string `json:"last_name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	IsOwner   bool   `json:"is_owner"`
+	ID        int    `json:"id" db:"id"`
+	Firstname string `json:"first_name" db:"first_name"`
+	Lastname  string `json:"last_name" db:"last_name"`
+	Email     string `json:"email" db:"email"`
+	Password  string `json:"password" db:"password"`
+	IsOwner   bool   `json:"is_owner" db:"is_owner"`
 }
 
 type UserRepo interface {
@@ -15,24 +21,70 @@ type UserRepo interface {
 }
 
 type userRepo struct {
-	users []User
+	db *sqlx.DB
 }
 
-func NewUserRepo() *userRepo {
-	return &userRepo{}
+func NewUserRepo(db *sqlx.DB) *userRepo {
+	return &userRepo{db: db}
 }
 
-func (r *userRepo) Create(u User) (*User, error) {
-	u.ID = len(r.users) + 1
-	r.users = append(r.users, u)
-	return &u, nil
+func (r *userRepo) Create(user User) (*User, error) {
+	query := `
+		INSERT INTO users (
+			first_name,
+			last_name,
+			email,
+			password,
+			is_owner
+		)
+		VALUES (
+			:first_name,
+			:last_name,
+			:email,
+			:password,
+			:is_owner
+		)
+		RETURNING id
+	`
+
+	var userID int
+	rows, err := r.db.NamedQuery(query, user)
+	if err != nil {
+		return nil, err
+	}
+
+	if rows.Next() {
+		err = rows.Scan(&userID)
+		if err != nil {
+			return nil, err
+		}
+	}
+	user.ID = userID
+	return &user, nil
 }
 
 func (r *userRepo) Find(email, password string) (*User, error) {
-	for _, user := range r.users {
-		if user.Email == email && user.Password == password {
-			return &user, nil
+	query := `
+		SELECT
+			id,
+			first_name,
+			last_name,
+			email,
+			password,
+			is_owner
+		FROM users
+		WHERE email = $1 AND password = $2
+		LIMIT 1
+	`
+
+	var user User
+	err := r.db.Get(&user, query, email, password)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // user not found
 		}
+		return nil, err
 	}
-	return nil, nil
+
+	return &user, nil
 }

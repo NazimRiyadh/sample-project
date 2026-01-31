@@ -9,18 +9,20 @@ import (
 	"ecommerce/rest/handlers/Test"
 	"ecommerce/rest/handlers/User"
 	"ecommerce/rest/middlewares"
-	"log"
+	"fmt"
+	"os"
 )
 
 func Serve() {
 	config := config.GetConfig()
 
-	dbCon, error := db.NewConnection()
+	db, error := db.NewConnection()
 	if error != nil {
-		log.Fatal("Failed to connect to database:", error)
+		fmt.Println("Error connecting to database:", error)
+		os.Exit(1)
 	}
 
-	userRepo := repo.NewUserRepo()
+	userRepo := repo.NewUserRepo(db)
 	productRepo := repo.NewProductRepo()
 
 	middlewareConfig := middlewares.NewMiddleware(config)
