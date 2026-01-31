@@ -1,7 +1,6 @@
 package Product
 
 import (
-	"ecommerce/database"
 	"ecommerce/util"
 	"fmt"
 	"net/http"
@@ -16,9 +15,13 @@ func (h *ProductHandler) GetProductById(w http.ResponseWriter, r *http.Request) 
 		fmt.Println("Error converting productId to int")
 		return
 	}
-	data := database.Get(id)
+	data, err := h.productRepo.Get(id)
 	if data != nil {
 		util.SendData(w, data, http.StatusOK)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Error fetching product", http.StatusInternalServerError)
 		return
 	}
 	util.SendData(w, "Product not found", http.StatusNotFound)

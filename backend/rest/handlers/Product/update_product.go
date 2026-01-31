@@ -1,13 +1,20 @@
 package Product
 
 import (
-	"ecommerce/database"
+	"ecommerce/repo"
 	"ecommerce/util"
 	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
 )
+
+type ReqUpdateProduct struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	ImgURL      string  `json:"imageUrl"`
+}
 
 func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	// Parse ID from URL path (e.g., /products/1)
@@ -20,14 +27,23 @@ func (h *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Decode the product from request body
-	var product database.Product
+	var product ReqUpdateProduct
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
 	// Update the product
-	database.Update(id, product)
-
-	util.SendData(w, "Product updated successfully", http.StatusOK)
+	updatedProduct, err := h.productRepo.Update(repo.Product{
+		ID:          id,
+		Title:       product.Title,
+		Description: product.Description,
+		Price:       product.Price,
+		ImgURL:      product.ImgURL,
+	})
+	if err != nil {
+		http.Error(w, "Error updating product", http.StatusInternalServerError)
+		return
+	}
+	util.SendData(w, updatedProduct, http.StatusOK)
 }
