@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"ecommerce/Infra/db"
 	"ecommerce/config"
 	"ecommerce/repo"
 	"ecommerce/rest"
@@ -8,10 +9,16 @@ import (
 	"ecommerce/rest/handlers/Test"
 	"ecommerce/rest/handlers/User"
 	"ecommerce/rest/middlewares"
+	"log"
 )
 
 func Serve() {
 	config := config.GetConfig()
+
+	dbCon, error := db.NewConnection()
+	if error != nil {
+		log.Fatal("Failed to connect to database:", error)
+	}
 
 	userRepo := repo.NewUserRepo()
 	productRepo := repo.NewProductRepo()
