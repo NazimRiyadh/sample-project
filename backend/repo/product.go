@@ -1,11 +1,17 @@
 package repo
 
+import (
+	"database/sql"
+
+	"github.com/jmoiron/sqlx"
+)
+
 type Product struct {
-	ID          int     `json:"id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	ImgURL      string  `json:"imageUrl"`
+	ID          int     `json:"id" db:"id"`
+	Title       string  `json:"title" db:"title"`
+	Description string  `json:"description" db:"description"`
+	Price       float64 `json:"price" db:"price"`
+	ImgURL      string  `json:"imageUrl" db:"img_url"`
 }
 
 type ProductRepo interface {
@@ -17,75 +23,78 @@ type ProductRepo interface {
 }
 
 type productRepo struct {
-	products []*Product
+	db *sqlx.DB
 }
 
-func NewProductRepo() *productRepo {
-	repo := &productRepo{}
-	GenerateInitialProduct(repo)
+func NewProductRepo(db *sqlx.DB) *productRepo {
+	repo := &productRepo{
+		db: db,
+	}
 
 	return repo
 }
 
 func (r *productRepo) Create(p Product) (*Product, error) {
-	p.ID = len(r.products) + 1
-	r.products = append(r.products, &p)
+	query := `
+		INSERT INTO products (title, description, price, img_url)
+		VALUES ($1, $2, $3, $4)
+
+		RETURNING id
+	`
+	row := r.db.QueryRow(query, p.Title, p.Description, p.Price, p.ImgURL)
+
+	err := row.Scan(&p.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &p, nil
 }
 
 func (r *productRepo) Get(id int) (*Product, error) {
-	for _, product := range r.products {
-		if product.ID == id {
-			return product, nil
+	var prd Product
+	query := `
+	SELECT * FROM products WHERE id=$1
+	`
+	err := r.db.Get(&prd, query, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
 		}
+		return nil, err
 	}
-	return nil, nil
+	return &prd, nil
 }
 
 func (r *productRepo) List() ([]*Product, error) {
-	return r.products, nil
+	var prdList []*Product
+	query := `
+	SELECT * FROM products
+	`
+	err := r.db.Select(&prdList, query)
+	if err != nil {
+		return nil, err
+	}
+	return prdList, nil
 
 }
 
 func (r *productRepo) Delete(id int) error {
-	var temp []*Product
-	for _, product := range r.products {
-		if product.ID != id {
-			temp = append(temp, product)
-		}
+	query := `
+	DELETE FROM products WHERE id=$1
+	`
+	_, err := r.db.Exec(query, id)
+	if err != nil {
+		return err
 	}
-	r.products = temp
 	return nil
 }
 
 func (r *productRepo) Update(p Product) (*Product, error) {
-	for _, product := range r.products {
-		if product.ID == p.ID {
-			*product = p
-			return product, nil
-		}
-	}
+	query := `
+	UPDATE products SET title=$1, description=$2, price=$3, img_url=$4 WHERE id=$5
+	`
+	row := r.db.QueryRow(query, p.Title, p.Description, p.Price, p.ImgURL, p.ID)
 	return &p, nil
-}
-
-func GenerateInitialProduct(r *productRepo) {
-	prod1 := Product{ID: 1, Title: "orange",
-		Description: "my father's fav fruit",
-		Price:       129.99,
-		ImgURL:      "https://www.lovefoodhatewaste.com/sites/default/files/styles/twitter_card_image/public/2022-07/Citrus%20fruits.jpg.webp?itok=H1j9CCCS",
-	}
-	prod2 := Product{ID: 2,
-		Title:       "apple",
-		Description: "tasty to eat while fever",
-		Price:       199.99,
-		ImgURL:      "https://i0.wp.com/post.healthline.com/wp-content/uploads/2021/05/apples-1296x728-header.jpg?w=1155&h=1528",
-	}
-	prod3 := Product{ID: 3,
-		Title:       "Watermelon",
-		Description: "Tasty & Juicy",
-		Price:       89.50,
-		ImgURL:      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZbMOVB8a8wRQ6e-UKZggiu7-edRAN1GolPQ&s",
-	}
-
-	r.products = append(r.products, &prod1, &prod2, &prod3)
 }
