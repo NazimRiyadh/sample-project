@@ -30,7 +30,7 @@ func (h *ProductHandler) AddProducts(w http.ResponseWriter, r *http.Request) {
 		ImgURL:      new_product.ImgURL,
 	})
 	if err != nil {
-		util.SendData(w, "Error creating product", http.StatusInternalServerError)
+		util.SendData(w, "Error creating product: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	util.SendData(w, createdProduct, http.StatusOK)

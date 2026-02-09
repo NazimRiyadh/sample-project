@@ -55,7 +55,7 @@ func (r *productRepo) Create(p Product) (*Product, error) {
 func (r *productRepo) Get(id int) (*Product, error) {
 	var prd Product
 	query := `
-	SELECT * FROM products WHERE id=$1
+	SELECT id, title, description, price, img_url FROM products WHERE id=$1
 	`
 	err := r.db.Get(&prd, query, id)
 	if err != nil {
@@ -70,7 +70,7 @@ func (r *productRepo) Get(id int) (*Product, error) {
 func (r *productRepo) List() ([]*Product, error) {
 	var prdList []*Product
 	query := `
-	SELECT * FROM products
+	SELECT id, title, description, price, img_url FROM products
 	`
 	err := r.db.Select(&prdList, query)
 	if err != nil {
@@ -95,6 +95,10 @@ func (r *productRepo) Update(p Product) (*Product, error) {
 	query := `
 	UPDATE products SET title=$1, description=$2, price=$3, img_url=$4 WHERE id=$5
 	`
-	row := r.db.QueryRow(query, p.Title, p.Description, p.Price, p.ImgURL, p.ID)
+	_, err := r.db.Exec(query, p.Title, p.Description, p.Price, p.ImgURL, p.ID)
+	if err != nil {
+		return nil, err
+	}
+	// Return the product as is since we updated it
 	return &p, nil
 }

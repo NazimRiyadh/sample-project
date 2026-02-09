@@ -14,7 +14,7 @@ func Logger(next http.Handler) http.Handler {
 		log.Println("Ami Logger middleware start kortesi")
 		next.ServeHTTP(w, r)
 		duration := time.Since(start)
-		log.Printf(r.Method, r.RequestURI, duration)
+		log.Printf("%s %s %v", r.Method, r.RequestURI, duration)
 		log.Println("Ami Logger middleware sesh kortesi")
 	})
 

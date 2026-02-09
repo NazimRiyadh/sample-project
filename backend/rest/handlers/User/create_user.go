@@ -33,7 +33,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		IsOwner:   new_user.IsOwner,
 	})
 	if err != nil {
-		util.SendData(w, "Error creating user", http.StatusInternalServerError)
+		util.SendData(w, "Error creating user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	// config := config.GetConfig()
