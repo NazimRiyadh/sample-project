@@ -1,4 +1,5 @@
-CREATE TABLE users (
+-- +migrate Up
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
 
     first_name TEXT NOT NULL,

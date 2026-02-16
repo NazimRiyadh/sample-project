@@ -16,14 +16,20 @@ import (
 func Serve() {
 	config := config.GetConfig()
 
-	db, error := db.NewConnection(&config.DBConfig)
-	if error != nil {
-		fmt.Println("Error connecting to database:", error)
+	dbConn, err := db.NewConnection(&config.DBConfig)
+	if err != nil {
+		fmt.Println("Error connecting to database:", err)
 		os.Exit(1)
 	}
 
-	userRepo := repo.NewUserRepo(db)
-	productRepo := repo.NewProductRepo(db)
+	err = db.Migrate(dbConn, "./migrations")
+	if err != nil {
+		fmt.Println("Error migrating database:", err)
+		os.Exit(1)
+	}
+
+	userRepo := repo.NewUserRepo(dbConn)
+	productRepo := repo.NewProductRepo(dbConn)
 
 	middlewareConfig := middlewares.NewMiddleware(config)
 
