@@ -1,5 +1,5 @@
 CREATE TABLE products (
-    id BIGINT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     price double precision NOT NULL,
